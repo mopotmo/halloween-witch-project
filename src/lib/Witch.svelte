@@ -1,15 +1,17 @@
 <script>
     import WitchImage from "../assets/witch.png";
     import WitchLaughing from "../assets/witch-laughs.mp3";
-    import { onMount, onDestroy } from "svelte";
+    import { onDestroy } from "svelte";
 
     export let width = 326;
     export let minPause = 2;
     export let maxPause = 30;
 
     let audio;
-
     let img;
+    let button;
+
+    let active = false;
 
     let animationDurationMin = 3;
     let animationDurationMax = 7;
@@ -37,15 +39,16 @@
     let scheduleTimeout = null;
     const schedulePlay = () => {
         stopSchedule();
-        const pause = Math.random() * (maxPause - minPause) + minPause;
-        scheduleTimeout = setTimeout(() => {
-            if (audio) {
-                audio.play();
-            }
-            schedulePlay();
-        }, pause * 1000);
-
-        console.log("Scheduled next play in " + pause + " seconds");
+        if (active) {
+            const pause = Math.random() * (maxPause - minPause) + minPause;
+            scheduleTimeout = setTimeout(() => {
+                if (audio) {
+                    audio.play();
+                }
+                schedulePlay();
+            }, pause * 1000);
+            console.log("Scheduled next play in " + pause + " seconds");
+        }
     };
 
     const stopSchedule = () => {
@@ -108,7 +111,7 @@
     };
 
     const randomizeAnimation = () => {
-        if (img) {
+        if (button && active) {
             animationDuration =
                 Math.random() * (animationDurationMax - animationDurationMin) +
                 animationDurationMin;
@@ -126,7 +129,7 @@
             let scaleX = calculateScaleX(animationScale, animationDistanceX);
 
             // Set direction
-            img.animate(
+            button.animate(
                 [
                     {
                         transform:
@@ -165,7 +168,7 @@
             );
 
             // Move
-            img.animate(
+            button.animate(
                 [
                     {
                         transform:
@@ -216,14 +219,24 @@
         }
     };
 
-    onMount(() => {
-        randomizeAnimation();
-        schedulePlay();
-    });
+    const toggleActive = () => {
+        active = !active;
+        if (active) {
+            randomizeAnimation();
+            audio.play();
+        } else {
+            stopSchedule();
+            audio.pause();
+            audio.currentTime = 0;
+            button.animate([]);
+        }
+    };
 </script>
 
-<img bind:this={img} src={WitchImage} alt="Hexe" {width} />
-<audio bind:this={audio} src={WitchLaughing} autoplay on:ended={schedulePlay} />
+<button bind:this={button} on:click={toggleActive}>
+    <img bind:this={img} src={WitchImage} alt="Hexe" {width} />
+</button>
+<audio bind:this={audio} src={WitchLaughing} on:ended={schedulePlay} />
 
 <style>
     :root {
@@ -238,6 +251,12 @@
 
     img {
         filter: drop-shadow(8px 8px 8px #222);
+    }
+
+    button {
+        background-color: transparent;
+        outline: none;
+        border: none;
     }
 
     @keyframes floating {
