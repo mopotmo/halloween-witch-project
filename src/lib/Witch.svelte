@@ -1,59 +1,110 @@
 <script>
     import WitchImage from "../assets/witch.png";
     import WitchLaughing from "../assets/witch-laughs.mp3";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
 
     export let width = 326;
     export let minPause = 2;
     export let maxPause = 30;
 
     let audio;
-    let scheduleIdAudio;
 
     let img;
 
-    let animationDurationMin = 4;
-    let animationDurationMax = 10;
-    let animationDuration =
-        Math.random() * (animationDurationMax - animationDurationMin) +
-        animationDurationMin;
+    let animationDurationMin = 3;
+    let animationDurationMax = 7;
+    let animationDuration;
+    let directionAnimationDuration = 1;
 
     let animationDistanceMinX = 200;
     let animationDistanceMaxX = 400;
-    let animationDistanceX =
-        (Math.random() * (animationDistanceMaxX - animationDistanceMinX) +
-            animationDistanceMinX) *
-        (Math.random() < 0.5 ? -1 : 1);
+    let animationDistanceX;
 
     let animationDistanceMinY = 50;
     let animationDistanceMaxY = 250;
-    let animationDistanceY =
-        (Math.random() * (animationDistanceMaxY - animationDistanceMinY) +
-            animationDistanceMinY) *
-        (Math.random() < 0.5 ? -1 : 1);
+    let animationDistanceY;
 
     let animationScaleMin = 0.2;
     let animationScaleMax = 1.2;
-    let animationScale =
-        Math.random() * (animationScaleMax - animationScaleMin) +
-        animationScaleMin;
+    let animationScale;
 
     let currentDistanceX = 0;
     let currentDistanceY = 0;
     let currentScale = 1;
+    let currentScaleX = 1;
+    let currentRotation = 0;
 
+    let scheduleTimeout = null;
     const schedulePlay = () => {
-        if (scheduleIdAudio) {
-            clearTimeout(scheduleIdAudio);
-        }
+        stopSchedule();
         const pause = Math.random() * (maxPause - minPause) + minPause;
-        scheduleIdAudio = setTimeout(() => {
+        scheduleTimeout = setTimeout(() => {
             if (audio) {
                 audio.play();
             }
             schedulePlay();
         }, pause * 1000);
+
         console.log("Scheduled next play in " + pause + " seconds");
+    };
+
+    const stopSchedule = () => {
+        if (scheduleTimeout) {
+            clearTimeout(scheduleTimeout);
+        }
+    };
+
+    onDestroy(() => {
+        console.log("Destroying");
+        stopSchedule();
+    });
+
+    const calculateRotation = (x, y) => {
+        const offset = 20;
+        let distX = x - currentDistanceX;
+        let distY = y - currentDistanceY;
+
+        if (distY < 0) {
+            return 0;
+        } else if (distY > 0) {
+            return 25;
+        } else {
+            return offset;
+        }
+
+        return offset + 90 * Math.abs(distY / distX);
+    };
+
+    const calculateScaleX = (scale, distanceX) => {
+        return scale * (distanceX > currentDistanceX ? 1 : -1);
+    };
+
+    const nextX = () => {
+        let x =
+            (Math.random() * (animationDistanceMaxX - animationDistanceMinX) +
+                animationDistanceMinX) *
+            (Math.random() < 0.5 ? -1 : 1);
+        if (
+            (x > 0 && currentDistanceX + x > animationDistanceMaxX) ||
+            (x < 0 && currentDistanceX + x < -animationDistanceMaxX)
+        ) {
+            x *= -1;
+        }
+        return currentDistanceX + x;
+    };
+
+    const nextY = () => {
+        let y =
+            (Math.random() * (animationDistanceMaxY - animationDistanceMinY) +
+                animationDistanceMinY) *
+            (Math.random() < 0.5 ? -1 : 1);
+        if (
+            (y > 0 && currentDistanceY + y > animationDistanceMaxY) ||
+            (y < 0 && currentDistanceY + y < -animationDistanceMaxY)
+        ) {
+            y *= -1;
+        }
+        return currentDistanceY + y;
     };
 
     const randomizeAnimation = () => {
@@ -61,21 +112,20 @@
             animationDuration =
                 Math.random() * (animationDurationMax - animationDurationMin) +
                 animationDurationMin;
-            animationDistanceX =
-                (Math.random() *
-                    (animationDistanceMaxX - animationDistanceMinX) +
-                    animationDistanceMinX) *
-                (Math.random() < 0.5 ? -1 : 1);
-            animationDistanceY =
-                (Math.random() *
-                    (animationDistanceMaxY - animationDistanceMinY) +
-                    animationDistanceMinY) *
-                (Math.random() < 0.5 ? -1 : 1);
+            animationDistanceX = nextX();
+            animationDistanceY = nextY();
             animationScale =
                 Math.random() * (animationScaleMax - animationScaleMin) +
                 animationScaleMin;
 
-            img.style.tr;
+            let rotation = calculateRotation(
+                animationDistanceX,
+                animationDistanceY
+            );
+
+            let scaleX = calculateScaleX(animationScale, animationDistanceX);
+
+            // Set direction
             img.animate(
                 [
                     {
@@ -85,10 +135,51 @@
                             "px, " +
                             currentDistanceY +
                             "px) scaleX(" +
-                            currentScale +
+                            currentScaleX +
                             ") scaleY(" +
                             currentScale +
-                            ")",
+                            ") rotate(" +
+                            currentRotation +
+                            "deg)",
+                    },
+                    {
+                        transform:
+                            "translate(" +
+                            currentDistanceX +
+                            "px, " +
+                            currentDistanceY +
+                            "px) scaleX(" +
+                            calculateScaleX(currentScale, animationDistanceX) +
+                            ") scaleY(" +
+                            currentScale +
+                            ") rotate(" +
+                            rotation +
+                            "deg)",
+                    },
+                ],
+                {
+                    duration: directionAnimationDuration * 1000,
+                    easing: "ease-in-out",
+                    fill: "forwards",
+                }
+            );
+
+            // Move
+            img.animate(
+                [
+                    {
+                        transform:
+                            "translate(" +
+                            currentDistanceX +
+                            "px, " +
+                            currentDistanceY +
+                            "px) scaleX(" +
+                            calculateScaleX(currentScale, animationDistanceX) +
+                            ") scaleY(" +
+                            currentScale +
+                            ") rotate(" +
+                            rotation +
+                            "deg)",
                     },
                     {
                         transform:
@@ -96,12 +187,17 @@
                             animationDistanceX +
                             "px, " +
                             animationDistanceY +
-                            "px) scale(" +
+                            "px) scaleX(" +
+                            scaleX +
+                            ") scaleY(" +
                             animationScale +
-                            ")",
+                            ") rotate(" +
+                            rotation +
+                            "deg)",
                     },
                 ],
                 {
+                    delay: directionAnimationDuration * 1000,
                     duration: animationDuration * 1000,
                     easing: "ease-in-out",
                     fill: "forwards",
@@ -111,26 +207,18 @@
             currentDistanceX = animationDistanceX;
             currentDistanceY = animationDistanceY;
             currentScale = animationScale;
-
-            console.log(
-                "Randomized animation: " +
-                    animationDuration +
-                    "s, " +
-                    animationDistanceX +
-                    "px, " +
-                    animationDistanceY +
-                    "px, scale: " +
-                    animationScale
-            );
+            currentScaleX = scaleX;
+            currentRotation = rotation;
 
             setTimeout(() => {
                 randomizeAnimation();
-            }, animationDuration * 1000);
+            }, (directionAnimationDuration + animationDuration) * 1000);
         }
     };
 
     onMount(() => {
         randomizeAnimation();
+        schedulePlay();
     });
 </script>
 
@@ -150,10 +238,6 @@
 
     img {
         filter: drop-shadow(8px 8px 8px #222);
-    }
-
-    img {
-        animation-timing-function: ease-in-out;
     }
 
     @keyframes floating {
