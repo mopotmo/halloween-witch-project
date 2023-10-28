@@ -1,3 +1,8 @@
+<script>
+  import Witch from "./lib/Witch.svelte";
+  const width = 350;
+</script>
+
 <main>
-  <h1>Hello World!</h1>
+  <Witch {width} />
 </main>
