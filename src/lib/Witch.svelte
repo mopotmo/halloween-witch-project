@@ -11,6 +11,7 @@
     let audioTheme;
     let img;
     let button;
+    let container;
 
     let active = false;
 
@@ -48,6 +49,34 @@
             scheduleTimeout = setTimeout(() => {
                 if (audioLaugh) {
                     audioLaugh.play();
+                    container?.animate(
+                        [
+                            { transform: "skewY(0deg)" },
+                            { transform: "skewY(-1deg)" },
+                            { transform: "skewY(1deg)" },
+                            { transform: "skewY(-1deg)" },
+                            { transform: "skewY(1deg)" },
+                            { transform: "skewY(-2deg)" },
+                            { transform: "skewY(2deg)" },
+                            { transform: "skewY(-2deg)" },
+                            { transform: "skewY(2deg)" },
+                            { transform: "skewY(-2deg)" },
+                            { transform: "skewY(2deg)" },
+                            { transform: "skewY(-2deg)" },
+                            { transform: "skewY(1deg)" },
+                            { transform: "skewY(-1deg)" },
+                            { transform: "skewY(1deg)" },
+                            { transform: "skewY(-1deg)" },
+                            { transform: "skewY(1deg)" },
+                            { transform: "skewY(-1deg)" },
+                            { transform: "skewY(0deg)" },
+                        ],
+                        {
+                            delay: 250,
+                            duration: audioLaugh.duration * 1000 - 1200,
+                            fill: "forwards",
+                        }
+                    );
                 }
                 schedulePlay();
             }, pause * 1000);
@@ -221,8 +250,8 @@
         active = !active;
         if (active) {
             randomizeAnimation();
-            audioLaugh.play();
             audioTheme.play();
+            schedulePlay();
         } else {
             stopSchedule();
             audioLaugh.pause();
@@ -260,7 +289,9 @@
 </script>
 
 <main>
-    <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    <div bind:this={container}>
+        <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    </div>
     <button bind:this={button} on:click={toggleActive} class:active>
         Klicken zum Starten / Stoppen
     </button>
