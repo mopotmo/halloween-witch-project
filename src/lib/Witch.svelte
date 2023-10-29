@@ -5,7 +5,7 @@
     import { onDestroy } from "svelte";
 
     export let minPause = 5;
-    export let maxPause = 45;
+    export let maxPause = 35;
 
     let audioLaugh;
     let audioTheme;
@@ -38,7 +38,7 @@
     let currentScaleX = 1;
     let currentRotation = 0;
 
-    let animation, rotateAnimation;
+    let animation, rotateAnimation, floatingAnimation, laughingAnimation;
 
     let scheduleTimeout = null;
 
@@ -49,27 +49,29 @@
             scheduleTimeout = setTimeout(() => {
                 if (audioLaugh) {
                     audioLaugh.play();
-                    container?.animate(
+                    laughingAnimation = container.animate(
                         [
-                            { transform: "skewY(0deg)" },
-                            { transform: "skewY(-1deg)" },
-                            { transform: "skewY(1deg)" },
-                            { transform: "skewY(-1deg)" },
-                            { transform: "skewY(1deg)" },
-                            { transform: "skewY(-2deg)" },
-                            { transform: "skewY(2deg)" },
-                            { transform: "skewY(-2deg)" },
-                            { transform: "skewY(2deg)" },
-                            { transform: "skewY(-2deg)" },
-                            { transform: "skewY(2deg)" },
-                            { transform: "skewY(-2deg)" },
-                            { transform: "skewY(1deg)" },
-                            { transform: "skewY(-1deg)" },
-                            { transform: "skewY(1deg)" },
-                            { transform: "skewY(-1deg)" },
-                            { transform: "skewY(1deg)" },
-                            { transform: "skewY(-1deg)" },
-                            { transform: "skewY(0deg)" },
+                            { transform: "rotate(0deg)" },
+                            { transform: "rotate(-1deg)" },
+                            { transform: "rotate(1deg)" },
+                            { transform: "rotate(-1deg)" },
+                            { transform: "rotate(1deg)" },
+                            { transform: "rotate(-2deg)" },
+                            { transform: "rotate(2deg)" },
+                            {
+                                transform: "rotate(-2deg)",
+                            },
+                            { transform: "rotate(2deg)" },
+                            { transform: "rotate(-2deg)" },
+                            { transform: "rotate(2deg)" },
+                            { transform: "rotate(-2deg)" },
+                            { transform: "rotate(1deg)" },
+                            { transform: "rotate(-1deg)" },
+                            { transform: "rotate(1deg)" },
+                            { transform: "rotate(-1deg)" },
+                            { transform: "rotate(1deg)" },
+                            { transform: "rotate(-1deg)" },
+                            { transform: "rotate(0deg)" },
                         ],
                         {
                             delay: 250,
@@ -77,8 +79,11 @@
                             fill: "forwards",
                         }
                     );
+                    laughingAnimation.finished.then(() => {
+                        laughingAnimation = null;
+                        schedulePlay();
+                    });
                 }
-                schedulePlay();
             }, pause * 1000);
             console.log("Scheduled next play in " + pause + " seconds");
         }
@@ -257,6 +262,8 @@
             audioLaugh.pause();
             audioLaugh.currentTime = 0;
             audioTheme.pause();
+            laughingAnimation?.cancel();
+            laughingAnimation = null;
 
             rotateAnimation?.cancel();
             rotateAnimation = null;
@@ -289,17 +296,37 @@
 </script>
 
 <main>
-    <div bind:this={container}>
-        <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    <div id="floating">
+        <div bind:this={container}>
+            <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+        </div>
     </div>
     <button bind:this={button} on:click={toggleActive} class:active>
         Klicken zum Starten / Stoppen
     </button>
-    <audio bind:this={audioLaugh} src={WitchLaughing} on:ended={schedulePlay} />
+    <audio bind:this={audioLaugh} src={WitchLaughing} />
     <audio bind:this={audioTheme} src={BackgroundTheme} loop />
 </main>
 
 <style>
+    #floating {
+        animation-name: floating;
+        animation-duration: 3s;
+        animation-iteration-count: infinite;
+        animation-timing-function: ease-in-out;
+    }
+
+    @keyframes floating {
+        0% {
+            transform: translate(0, 0px);
+        }
+        50% {
+            transform: translate(-15px, 15px);
+        }
+        100% {
+            transform: translate(0, -0px);
+        }
+    }
     img {
         filter: drop-shadow(2px 2px 2px #222);
     }
