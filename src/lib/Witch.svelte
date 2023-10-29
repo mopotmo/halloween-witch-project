@@ -1,13 +1,15 @@
 <script>
     import WitchImage from "../assets/witch.png";
     import WitchLaughing from "../assets/witch-laughs.mp3";
+    import BackgroundTheme from "../assets/halloween.mp3";
     import { onDestroy } from "svelte";
 
     export let width = 326;
-    export let minPause = 2;
-    export let maxPause = 30;
+    export let minPause = 5;
+    export let maxPause = 45;
 
-    let audio;
+    let audioLaugh;
+    let audioTheme;
     let img;
     let button;
 
@@ -27,7 +29,7 @@
     let animationDistanceY;
 
     let animationScaleMin = 0.2;
-    let animationScaleMax = 1.2;
+    let animationScaleMax = 1.1;
     let animationScale;
 
     let currentDistanceX = 0;
@@ -42,8 +44,8 @@
         if (active) {
             const pause = Math.random() * (maxPause - minPause) + minPause;
             scheduleTimeout = setTimeout(() => {
-                if (audio) {
-                    audio.play();
+                if (audioLaugh) {
+                    audioLaugh.play();
                 }
                 schedulePlay();
             }, pause * 1000);
@@ -223,11 +225,13 @@
         active = !active;
         if (active) {
             randomizeAnimation();
-            audio.play();
+            audioLaugh.play();
+            audioTheme.play();
         } else {
             stopSchedule();
-            audio.pause();
-            audio.currentTime = 0;
+            audioLaugh.pause();
+            audioLaugh.currentTime = 0;
+            audioTheme.pause();
             button.animate([]);
         }
     };
@@ -236,7 +240,8 @@
 <button bind:this={button} on:click={toggleActive}>
     <img bind:this={img} src={WitchImage} alt="Hexe" {width} />
 </button>
-<audio bind:this={audio} src={WitchLaughing} on:ended={schedulePlay} />
+<audio bind:this={audioLaugh} src={WitchLaughing} on:ended={schedulePlay} />
+<audio bind:this={audioTheme} src={BackgroundTheme} loop />
 
 <style>
     :root {
