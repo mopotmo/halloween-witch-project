@@ -37,7 +37,10 @@
     let currentScaleX = 1;
     let currentRotation = 0;
 
+    let animation, rotateAnimation;
+
     let scheduleTimeout = null;
+
     const schedulePlay = () => {
         stopSchedule();
         if (active) {
@@ -59,7 +62,6 @@
     };
 
     onDestroy(() => {
-        console.log("Destroying");
         stopSchedule();
     });
 
@@ -71,7 +73,7 @@
         if (distY < 0) {
             return 0;
         } else if (distY > 0) {
-            return 25;
+            return 15;
         } else {
             return offset;
         }
@@ -111,8 +113,25 @@
         return currentDistanceY + y;
     };
 
+    const createTransform = (x, y, scale, scaleX, rotation) => {
+        return {
+            transform:
+                "translate(" +
+                x +
+                "px, " +
+                y +
+                "px) scaleX(" +
+                scaleX +
+                ") scaleY(" +
+                scale +
+                ") rotate(" +
+                rotation +
+                "deg)",
+        };
+    };
+
     const randomizeAnimation = () => {
-        if (button && active) {
+        if (img && active) {
             animationDuration =
                 Math.random() * (animationDurationMax - animationDurationMin) +
                 animationDurationMin;
@@ -130,36 +149,23 @@
             let scaleX = calculateScaleX(animationScale, animationDistanceX);
 
             // Set direction
-            button.animate(
+            rotateAnimation = img.animate(
                 [
-                    {
-                        transform:
-                            "translate(" +
-                            currentDistanceX +
-                            "px, " +
-                            currentDistanceY +
-                            "px) scaleX(" +
-                            currentScaleX +
-                            ") scaleY(" +
-                            currentScale +
-                            ") rotate(" +
-                            currentRotation +
-                            "deg)",
-                    },
-                    {
-                        transform:
-                            "translate(" +
-                            currentDistanceX +
-                            "px, " +
-                            currentDistanceY +
-                            "px) scaleX(" +
-                            calculateScaleX(currentScale, animationDistanceX) +
-                            ") scaleY(" +
-                            currentScale +
-                            ") rotate(" +
-                            rotation +
-                            "deg)",
-                    },
+                    createTransform(
+                        currentDistanceX,
+                        currentDistanceY,
+                        currentScale,
+                        currentScaleX,
+                        currentRotation
+                    ),
+                    ,
+                    createTransform(
+                        currentDistanceX,
+                        currentDistanceY,
+                        currentScale,
+                        calculateScaleX(currentScale, animationDistanceX),
+                        rotation
+                    ),
                 ],
                 {
                     duration: directionAnimationDuration * 1000,
@@ -169,36 +175,22 @@
             );
 
             // Move
-            button.animate(
+            animation = img.animate(
                 [
-                    {
-                        transform:
-                            "translate(" +
-                            currentDistanceX +
-                            "px, " +
-                            currentDistanceY +
-                            "px) scaleX(" +
-                            calculateScaleX(currentScale, animationDistanceX) +
-                            ") scaleY(" +
-                            currentScale +
-                            ") rotate(" +
-                            rotation +
-                            "deg)",
-                    },
-                    {
-                        transform:
-                            "translate(" +
-                            animationDistanceX +
-                            "px, " +
-                            animationDistanceY +
-                            "px) scaleX(" +
-                            scaleX +
-                            ") scaleY(" +
-                            animationScale +
-                            ") rotate(" +
-                            rotation +
-                            "deg)",
-                    },
+                    createTransform(
+                        currentDistanceX,
+                        currentDistanceY,
+                        currentScale,
+                        calculateScaleX(currentScale, animationDistanceX),
+                        rotation
+                    ),
+                    createTransform(
+                        animationDistanceX,
+                        animationDistanceY,
+                        animationScale,
+                        scaleX,
+                        rotation
+                    ),
                 ],
                 {
                     delay: directionAnimationDuration * 1000,
@@ -231,14 +223,14 @@
             audioLaugh.pause();
             audioLaugh.currentTime = 0;
             audioTheme.pause();
-            button.animate([]);
         }
     };
 </script>
 
 <main>
-    <button bind:this={button} on:click={toggleActive}>
-        <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    <button bind:this={button} on:click={toggleActive} class:active>
+        Klicken zum Starten / Stoppen
     </button>
     <audio bind:this={audioLaugh} src={WitchLaughing} on:ended={schedulePlay} />
     <audio bind:this={audioTheme} src={BackgroundTheme} loop />
@@ -246,12 +238,25 @@
 
 <style>
     img {
-        filter: drop-shadow(4px 4px 4px #222);
+        filter: drop-shadow(2px 2px 2px #222);
     }
 
     button {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0, 0, 0, 0.2);
+        text-align: center;
+        font-size: xx-large;
+        filter: drop-shadow(2px 2px 2px #222);
+    }
+    button.active {
         background-color: transparent;
         outline: none;
         border: none;
+        text-align: center;
+        color: transparent;
     }
 </style>
