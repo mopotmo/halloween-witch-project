@@ -4,7 +4,6 @@
     import BackgroundTheme from "../assets/halloween.mp3";
     import { onDestroy } from "svelte";
 
-    export let width = 326;
     export let minPause = 5;
     export let maxPause = 45;
 
@@ -237,47 +236,22 @@
     };
 </script>
 
-<button bind:this={button} on:click={toggleActive}>
-    <img bind:this={img} src={WitchImage} alt="Hexe" {width} />
-</button>
-<audio bind:this={audioLaugh} src={WitchLaughing} on:ended={schedulePlay} />
-<audio bind:this={audioTheme} src={BackgroundTheme} loop />
+<main>
+    <button bind:this={button} on:click={toggleActive}>
+        <img bind:this={img} src={WitchImage} alt="Hexe" width="30%" />
+    </button>
+    <audio bind:this={audioLaugh} src={WitchLaughing} on:ended={schedulePlay} />
+    <audio bind:this={audioTheme} src={BackgroundTheme} loop />
+</main>
 
 <style>
-    :root {
-        --animation-start-x: 0px;
-        --animation-start-y: 0px;
-        --animation-start-scale: 1;
-        --animation-time: 10s;
-        --animation-distance-x: 500px;
-        --animation-distance-y: 500px;
-        --animation-scale: 0.3;
-    }
-
     img {
-        filter: drop-shadow(8px 8px 8px #222);
+        filter: drop-shadow(4px 4px 4px #222);
     }
 
     button {
         background-color: transparent;
         outline: none;
         border: none;
-    }
-
-    @keyframes floating {
-        0% {
-            transform: translate(
-                var(--animation-start-x),
-                var(--animation-start-y)
-            );
-            transform: scale(var(--animation-start-scale));
-        }
-        100% {
-            transform: translate(
-                var(--animation-distance-x),
-                var(--animation-distance-y)
-            );
-            transform: scale(var(--animation-scale));
-        }
     }
 </style>

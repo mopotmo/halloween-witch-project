@@ -4,5 +4,5 @@
 </script>
 
 <main>
-  <Witch {width} />
+  <Witch />
 </main>
