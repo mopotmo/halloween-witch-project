@@ -174,41 +174,46 @@
                 }
             );
 
-            // Move
-            animation = img.animate(
-                [
-                    createTransform(
-                        currentDistanceX,
-                        currentDistanceY,
-                        currentScale,
-                        calculateScaleX(currentScale, animationDistanceX),
-                        rotation
-                    ),
-                    createTransform(
-                        animationDistanceX,
-                        animationDistanceY,
-                        animationScale,
-                        scaleX,
-                        rotation
-                    ),
-                ],
-                {
-                    delay: directionAnimationDuration * 1000,
-                    duration: animationDuration * 1000,
-                    easing: "ease-in-out",
-                    fill: "forwards",
-                }
-            );
+            rotateAnimation.finished.then(() => {
+                rotateAnimation = null;
 
-            currentDistanceX = animationDistanceX;
-            currentDistanceY = animationDistanceY;
-            currentScale = animationScale;
-            currentScaleX = scaleX;
-            currentRotation = rotation;
+                // Move
+                animation = img.animate(
+                    [
+                        createTransform(
+                            currentDistanceX,
+                            currentDistanceY,
+                            currentScale,
+                            calculateScaleX(currentScale, animationDistanceX),
+                            rotation
+                        ),
+                        createTransform(
+                            animationDistanceX,
+                            animationDistanceY,
+                            animationScale,
+                            scaleX,
+                            rotation
+                        ),
+                    ],
+                    {
+                        delay: directionAnimationDuration * 1000,
+                        duration: animationDuration * 1000,
+                        easing: "ease-in-out",
+                        fill: "forwards",
+                    }
+                );
+                animation.finished.then(() => {
+                    animation = null;
 
-            setTimeout(() => {
-                randomizeAnimation();
-            }, (directionAnimationDuration + animationDuration) * 1000);
+                    currentDistanceX = animationDistanceX;
+                    currentDistanceY = animationDistanceY;
+                    currentScale = animationScale;
+                    currentScaleX = scaleX;
+                    currentRotation = rotation;
+
+                    randomizeAnimation();
+                });
+            });
         }
     };
 
@@ -223,6 +228,33 @@
             audioLaugh.pause();
             audioLaugh.currentTime = 0;
             audioTheme.pause();
+
+            rotateAnimation?.cancel();
+            rotateAnimation = null;
+            animation?.cancel();
+            animation = null;
+            img.animate(
+                [
+                    createTransform(
+                        currentDistanceX,
+                        currentDistanceY,
+                        currentScale,
+                        currentScaleX,
+                        currentRotation
+                    ),
+                    createTransform(0, 0, 1, 1, 0),
+                ],
+                {
+                    duration: 0,
+                    fill: "forwards",
+                }
+            ).finished.then(() => {
+                currentDistanceX = 0;
+                currentDistanceY = 0;
+                currentScale = 1;
+                currentScaleX = 1;
+                currentRotation = 0;
+            });
         }
     };
 </script>
